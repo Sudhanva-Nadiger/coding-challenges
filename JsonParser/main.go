@@ -1,13 +1,12 @@
 package main
 
-func NewJSONParser(input string) *Jsonparser {
-	return &Jsonparser{
-		input:  input,
-		cursor: 0,
-	}
-}
+import (
+	"os"
+)
 
 func main() {
-	p := NewJSONParser("{}")
+	file, _ := os.ReadFile("tests/step3/valid.json")
+
+	p := NewJSONParser(string(file))
 	p.Parse()
 }
