@@ -1,7 +1,6 @@
 package main
 
 import (
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -20,7 +19,7 @@ func TestPassFiles(t *testing.T) {
 	}
 	defer os.Remove("jsonparser_test_bin")
 
-	files, err := ioutil.ReadDir(testDir)
+	files, err := os.ReadDir(testDir)
 	if err != nil {
 		t.Fatalf("Failed to read test directory: %v", err)
 	}
@@ -54,7 +53,7 @@ func TestFailFiles(t *testing.T) {
 	}
 	defer os.Remove("jsonparser_test_bin")
 
-	files, err := ioutil.ReadDir(testDir)
+	files, err := os.ReadDir(testDir)
 	if err != nil {
 		t.Fatalf("Failed to read test directory: %v", err)
 	}
