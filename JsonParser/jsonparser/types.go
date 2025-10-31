@@ -1,4 +1,4 @@
-package main
+package jsonparser
 
 type JSONValue = any
 type JSONObject = map[string]JSONValue

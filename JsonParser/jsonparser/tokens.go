@@ -1,11 +1,11 @@
-package main
+package jsonparser
 
 type NumberToken rune
 type EscapeToken rune
 type Token rune
 
 var (
-	EscapeTokenToTokenMap map[EscapeToken]Token
+	escapeTokenToTokenMap map[EscapeToken]Token
 )
 
 const (
@@ -74,14 +74,14 @@ const (
 
 func init() {
 	// 1. You must 'make' the map before you can add to it
-	EscapeTokenToTokenMap = make(map[EscapeToken]Token)
+	escapeTokenToTokenMap = make(map[EscapeToken]Token)
 
 	// 2. Populate the map
-	EscapeTokenToTokenMap[ESCAPE_QUOTE] = QUOTE
-	EscapeTokenToTokenMap[ESCAPE_BACKSPACE] = BACKSPACE
-	EscapeTokenToTokenMap[ESCAPE_FORM_FEED] = FORM_FEED
-	EscapeTokenToTokenMap[ESCAPE_LINE_FEED] = LINE_FEED
-	EscapeTokenToTokenMap[ESCAPE_CAR_RETURN] = CAR_RETURN
-	EscapeTokenToTokenMap[ESCAPE_HORIZONTAL_TAB] = HORIZONTAL_TAB
-	EscapeTokenToTokenMap[ESCAPE_HEX] = HEX
+	escapeTokenToTokenMap[ESCAPE_QUOTE] = QUOTE
+	escapeTokenToTokenMap[ESCAPE_BACKSPACE] = BACKSPACE
+	escapeTokenToTokenMap[ESCAPE_FORM_FEED] = FORM_FEED
+	escapeTokenToTokenMap[ESCAPE_LINE_FEED] = LINE_FEED
+	escapeTokenToTokenMap[ESCAPE_CAR_RETURN] = CAR_RETURN
+	escapeTokenToTokenMap[ESCAPE_HORIZONTAL_TAB] = HORIZONTAL_TAB
+	escapeTokenToTokenMap[ESCAPE_HEX] = HEX
 }

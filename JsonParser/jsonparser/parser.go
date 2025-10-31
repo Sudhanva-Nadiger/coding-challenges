@@ -1,4 +1,4 @@
-package main
+package jsonparser
 
 import (
 	"fmt"
@@ -23,11 +23,11 @@ func NewJSONParser(input string) *Jsonparser {
 func (p *Jsonparser) Parse() {
 	fmt.Println(p.input)
 
-	p.ConsumeWhiteSpace()
+	p.consumeWhiteSpace()
 
 	p.parseValue()
 
-	p.ConsumeWhiteSpace()
+	p.consumeWhiteSpace()
 
 	if p.HasNext() {
 		log.Fatalf("Unexpected token %v at position %v", p.currentToken(), p.cursor)
@@ -70,7 +70,7 @@ func (p *Jsonparser) parseValue() JSONValue {
 func (p *Jsonparser) parseObject() JSONObject {
 	obj := make(map[string]JSONValue)
 
-	p.Consume(BEGIN_OBJECT, true)
+	p.consume(BEGIN_OBJECT, true)
 
 	hasMorePair := false
 
@@ -82,7 +82,7 @@ func (p *Jsonparser) parseObject() JSONObject {
 		currToken := p.currentToken()
 
 		if currToken == rune(COMMA) {
-			p.Consume(COMMA, true)
+			p.consume(COMMA, true)
 			hasMorePair = true
 		} else if currToken != rune(END_OBJECT) {
 			hasMorePair = false
@@ -93,7 +93,7 @@ func (p *Jsonparser) parseObject() JSONObject {
 		}
 	}
 
-	p.Consume(END_OBJECT, true)
+	p.consume(END_OBJECT, true)
 
 	return obj
 }
@@ -102,7 +102,7 @@ func (p *Jsonparser) parsePair() *KeyValuePair {
 
 	key := p.parseString()
 
-	p.Consume(SEMI_COLON, true)
+	p.consume(SEMI_COLON, true)
 
 	value := p.parseValue()
 
@@ -115,7 +115,7 @@ func (p *Jsonparser) parsePair() *KeyValuePair {
 func (p *Jsonparser) parseString() string {
 	str := ""
 
-	p.Consume(QUOTE, true)
+	p.consume(QUOTE, true)
 
 	for p.currentToken() != rune(QUOTE) {
 
@@ -132,12 +132,12 @@ func (p *Jsonparser) parseString() string {
 		}
 	}
 
-	p.Consume(QUOTE, true)
+	p.consume(QUOTE, true)
 	return str
 }
 
 func (p *Jsonparser) parseEscape() string {
-	p.Consume(ESCAPE, false)
+	p.consume(ESCAPE, false)
 
 	if unicode.IsControl(p.currentToken()) {
 		log.Fatalf("Invalid character at %v. control chars should be escaped", p.cursor)
@@ -146,15 +146,15 @@ func (p *Jsonparser) parseEscape() string {
 
 	switch currToken := p.currentToken(); currToken {
 	case rune(ESCAPE_QUOTE), rune(REVERSE_SOLIDUS), rune(SOLIDUS):
-		p.Consume(nil, true)
+		p.consume(nil, true)
 		return string(currToken)
 	case rune(ESCAPE_BACKSPACE),
 		rune(ESCAPE_CAR_RETURN),
 		rune(ESCAPE_FORM_FEED),
 		rune(ESCAPE_LINE_FEED),
 		rune(ESCAPE_HORIZONTAL_TAB):
-		p.Consume(nil, true)
-		return string(EscapeTokenToTokenMap[EscapeToken(currToken)])
+		p.consume(nil, true)
+		return string(escapeTokenToTokenMap[EscapeToken(currToken)])
 	case rune(ESCAPE_HEX):
 		hexStr := p.input[p.cursor : p.cursor+4]
 		code, err := strconv.ParseInt(hexStr, 16, 32)
@@ -175,29 +175,29 @@ func (p *Jsonparser) parseEscape() string {
 }
 
 func (p *Jsonparser) parseTrue() bool {
-	p.Consume(BEGIN_TRUE, false)
-	p.Consume(TRUE_R, false)
-	p.Consume(TRUE_U, false)
-	p.Consume(TRUE_E, false)
+	p.consume(BEGIN_TRUE, false)
+	p.consume(TRUE_R, false)
+	p.consume(TRUE_U, false)
+	p.consume(TRUE_E, false)
 
 	return true
 }
 
 func (p *Jsonparser) parseFalse() bool {
-	p.Consume(BEGIN_FALSE, false)
-	p.Consume(FALSE_A, false)
-	p.Consume(FALSE_L, false)
-	p.Consume(FALSE_S, false)
-	p.Consume(FALSE_E, false)
+	p.consume(BEGIN_FALSE, false)
+	p.consume(FALSE_A, false)
+	p.consume(FALSE_L, false)
+	p.consume(FALSE_S, false)
+	p.consume(FALSE_E, false)
 
 	return false
 }
 
 func (p *Jsonparser) parseNull() any {
-	p.Consume(BEGIN_NULL, false)
-	p.Consume(NULL_U, false)
-	p.Consume(NULL_L, false)
-	p.Consume(NULL_L, false)
+	p.consume(BEGIN_NULL, false)
+	p.consume(NULL_U, false)
+	p.consume(NULL_L, false)
+	p.consume(NULL_L, false)
 
 	return nil
 }
@@ -207,7 +207,7 @@ func (p *Jsonparser) parseNumber() float64 {
 
 	if p.currentToken() == rune(NUMBER_MINUS) {
 		str += string(NUMBER_MINUS)
-		p.Consume(NUMBER_MINUS, false)
+		p.consume(NUMBER_MINUS, false)
 	}
 
 	str += p.parseDigits(false)
@@ -220,7 +220,7 @@ func (p *Jsonparser) parseDigits(allowLeadingZero bool) string {
 	return ""
 }
 
-func (p *Jsonparser) Consume(expected any, skip bool) {
+func (p *Jsonparser) consume(expected any, skip bool) {
 	if expected != nil && rune(expected.(Token)) != p.currentToken() {
 		log.Fatalf("Expected %v but found %v at position %v", string(expected.(Token)), string(p.currentToken()), p.cursor)
 		os.Exit(1)
@@ -235,9 +235,9 @@ func (p *Jsonparser) Consume(expected any, skip bool) {
 	}
 }
 
-func (p *Jsonparser) ConsumeWhiteSpace() {
+func (p *Jsonparser) consumeWhiteSpace() {
 	for p.cursor < len(p.input) && unicode.IsSpace(p.currentToken()) {
-		p.Consume(nil, true)
+		p.consume(nil, true)
 	}
 }
 
@@ -249,6 +249,6 @@ func (p *Jsonparser) currentToken() rune {
 }
 
 func (p *Jsonparser) HasNext() bool {
-	p.ConsumeWhiteSpace()
+	p.consumeWhiteSpace()
 	return p.cursor < len(p.input)
 }
