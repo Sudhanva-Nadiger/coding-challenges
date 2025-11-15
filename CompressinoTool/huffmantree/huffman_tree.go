@@ -1,7 +1,5 @@
 package huffmantree
 
-import "container/heap"
-
 type HuffManTree struct {
 	root         *Node
 	FrequencyMap *map[rune]int64
@@ -18,15 +16,15 @@ func (ht *HuffManTree) BuildHuffManTree() {
 	pq := BuildPriorityQueue(ht.FrequencyMap)
 
 	for pq.Len() > 1 {
-		node1 := heap.Pop(pq).(*Node)
-		node2 := heap.Pop(pq).(*Node)
+		node1 := pq.Poll()
+		node2 := pq.Poll()
 
 		sum := node1.weight + node2.weight
 
 		mergedNode := MergeTree(sum, node1, node2)
 
-		heap.Push(pq, mergedNode)
+		pq.Add(mergedNode)
 	}
 
-	ht.root = heap.Pop(pq).(*Node)
+	ht.root = pq.Poll()
 }

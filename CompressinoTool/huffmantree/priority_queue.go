@@ -30,6 +30,14 @@ func (pq *PriorityQueue) Pop() any {
 	return node
 }
 
+func (pq *PriorityQueue) Add(node *Node) {
+	heap.Push(pq, node)
+}
+
+func (pq *PriorityQueue) Poll() *Node {
+	return heap.Pop(pq).(*Node)
+}
+
 func BuildPriorityQueue(frequencyMap *map[rune]int64) *PriorityQueue {
 	pq := make(PriorityQueue, len(*frequencyMap))
 
