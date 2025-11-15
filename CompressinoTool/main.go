@@ -1,7 +1,7 @@
 package main
 
 import (
-	"compressiontool/huffmantree"
+	"compressiontool/util"
 	"log"
 	"os"
 )
@@ -19,28 +19,14 @@ func main() {
 		os.Exit(1)
 	}
 
-	if argsLen != 1 {
-		log.Fatalf("Too many arguments expected 1 but receieved %d\n", argsLen)
+	if argsLen != 2 {
+		log.Fatalf("Too many arguments expected 2 but receieved %d\n", argsLen)
 		os.Exit(1)
 	}
 
-	fileName := args[0]
+	inputFileName := args[0]
+	outputFileName := args[1]
 
-	content, err := os.ReadFile(fileName)
-
-	if err != nil {
-		log.Fatalf("Could not read file at path %v", err)
-		os.Exit(1)
-	}
-
-	frequencyMap := make(map[rune]int64)
-
-	for _, char := range string(content) {
-		frequencyMap[char]++
-	}
-
-	huffmanTree := huffmantree.NewHuffManTree(frequencyMap)
-
-	huffmanTree.BuildHuffManTree()
+	util.CreateCompressedFile(inputFileName, outputFileName)
 
 }
