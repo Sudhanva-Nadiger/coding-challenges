@@ -9,7 +9,7 @@ type Node struct {
 	right  *Node
 }
 
-func NewLeafNode(w int64, c rune) *Node {
+func newLeafNode(w int64, c rune) *Node {
 	return &Node{
 		weight: w,
 		char:   c,
@@ -18,7 +18,7 @@ func NewLeafNode(w int64, c rune) *Node {
 	}
 }
 
-func NewInternalNode(w int64) *Node {
+func newInternalNode(w int64) *Node {
 	return &Node{
 		weight: w,
 		left:   nil,
@@ -26,8 +26,8 @@ func NewInternalNode(w int64) *Node {
 	}
 }
 
-func MergeTree(w int64, l, r *Node) *Node {
-	node := NewInternalNode(w)
+func mergeTree(w int64, l, r *Node) *Node {
+	node := newInternalNode(w)
 
 	node.left = l
 	node.right = r
@@ -35,7 +35,7 @@ func MergeTree(w int64, l, r *Node) *Node {
 	return node
 }
 
-func (n *Node) IsLeadNode() bool {
+func (n *Node) isLeadNode() bool {
 	return n.char != 0
 }
 
@@ -60,7 +60,7 @@ func printNode(node *Node, prefix string, isTail bool) {
 
 	// Format node information
 	var nodeInfo string
-	if node.IsLeadNode() {
+	if node.isLeadNode() {
 		// Leaf node - show character and weight
 		charDisplay := string(node.char)
 		switch node.char {

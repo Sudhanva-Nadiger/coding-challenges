@@ -15,17 +15,27 @@ func CreateCompressedFile(inputFile string, outputFile string) error {
 		return err
 	}
 
+	log.Println("reading input file compreted")
+
 	frquencyMap := make(map[rune]int64)
 
 	for _, char := range string(inputContent) {
 		frquencyMap[char]++
 	}
 
+	log.Printf("frequency map creation is done, %v\n", len(frquencyMap))
+
 	huffmanTree := huffmantree.NewHuffManTree(frquencyMap)
 
-	compressedBitString := huffmanTree.GetCompressedBitsString(string(inputContent))
+	log.Println("Huffman tree building is done")
+
+	compressedBitString := huffmanTree.Encode(string(inputContent))
+
+	log.Println("Content encoding is done")
 
 	compressedByteArray, paddingLen := packCompressedBitString(compressedBitString)
+
+	log.Println("packing is done")
 
 	headerSection, err := getHeaderSectionToWrite(*huffmanTree.FrequencyMap)
 
@@ -34,6 +44,8 @@ func CreateCompressedFile(inputFile string, outputFile string) error {
 	}
 
 	err = writeToFile(headerSection, compressedByteArray, paddingLen, outputFile)
+
+	log.Println("Wrote to file")
 
 	logStats(inputFile, outputFile)
 
@@ -45,9 +57,10 @@ func CreateCompressedFile(inputFile string, outputFile string) error {
 }
 
 func packCompressedBitString(compressedBitString string) ([]byte, int) {
-	paddedBitString := compressedBitString + strings.Repeat("0", 8-len(compressedBitString)%8)
+	// Calculate padding needed (0 if already multiple of 8)
+	paddingBitsLen := (8 - len(compressedBitString)%8) % 8
 
-	paddingBitsLen := len(paddedBitString) - len(compressedBitString)
+	paddedBitString := compressedBitString + strings.Repeat("0", paddingBitsLen)
 
 	packedBytes := make([]byte, len(paddedBitString)/8)
 
@@ -72,28 +85,19 @@ func getHeaderSectionToWrite(frequencyMap map[rune]int64) ([]byte, error) {
 }
 
 func writeToFile(headerSection, compressedByteArray []byte, paddingLen int, outputFile string) error {
+	headerLenStr := strconv.Itoa(len(headerSection)) + "\n"
+	paddingLenStr := strconv.Itoa(paddingLen) + "\n"
 
-	// write len of header section with new line
-	err := os.WriteFile(outputFile, []byte(strconv.Itoa(len(headerSection))+"\n"), 0644)
+	totalSize := len(headerLenStr) + len(paddingLenStr) + len(headerSection) + len(compressedByteArray)
 
-	if err != nil {
-		return err
-	}
+	fileContent := make([]byte, 0, totalSize)
+	fileContent = append(fileContent, []byte(headerLenStr)...)
+	fileContent = append(fileContent, []byte(paddingLenStr)...)
+	fileContent = append(fileContent, headerSection...)
+	fileContent = append(fileContent, compressedByteArray...)
 
-	// write padding length
-	err = os.WriteFile(outputFile, []byte(strconv.Itoa(paddingLen)+"\n"), 0644)
-	if err != nil {
-		return err
-	}
-
-	// write header section
-	err = os.WriteFile(outputFile, headerSection, 0644)
-	if err != nil {
-		return err
-	}
-
-	// write compressed byte array
-	err = os.WriteFile(outputFile, compressedByteArray, 0644)
+	// Write once
+	err := os.WriteFile(outputFile, fileContent, 0644)
 	if err != nil {
 		return err
 	}

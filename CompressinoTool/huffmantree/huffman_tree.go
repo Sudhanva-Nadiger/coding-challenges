@@ -2,6 +2,7 @@ package huffmantree
 
 import (
 	"fmt"
+	"strings"
 )
 
 type HuffManTree struct {
@@ -21,20 +22,51 @@ func NewHuffManTree(frequencyMap map[rune]int64) *HuffManTree {
 	return ht
 }
 
-func (ht *HuffManTree) GetCompressedBitsString(inputContent string) string {
+func (ht *HuffManTree) Encode(inputContent string) string {
 	ht.buildprefixCodeTable()
 
-	compressedBitsString := ""
+	var builder strings.Builder
+	builder.Grow(len(inputContent) * 8)
 
 	for _, char := range inputContent {
-		compressedBitsString += (*ht.prefixCodeTable)[char]
+		builder.WriteString((*ht.prefixCodeTable)[char])
 	}
 
-	return compressedBitsString
+	return builder.String()
+}
+
+func decodeBinaryString(binaryString *string, root *Node, index *int) rune {
+	if root.isLeadNode() {
+		return root.char
+	}
+
+	if (*binaryString)[*index] == '0' {
+		*index += 1
+		return decodeBinaryString(binaryString, root.left, index)
+	}
+
+	*index += 1
+
+	return decodeBinaryString(binaryString, root.right, index)
+}
+
+func (ht *HuffManTree) Decode(binaryString string) string {
+	index := 0
+	len := len(binaryString)
+
+	var builder strings.Builder
+	builder.Grow(len / 8)
+
+	for index < len {
+		char := decodeBinaryString(&binaryString, ht.root, &index)
+		builder.WriteRune(char)
+	}
+
+	return builder.String()
 }
 
 func (ht *HuffManTree) buildHuffManTree() {
-	pq := BuildPriorityQueue(ht.FrequencyMap)
+	pq := buildPriorityQueue(ht.FrequencyMap)
 
 	for pq.Len() > 1 {
 		node1 := pq.Poll()
@@ -42,7 +74,7 @@ func (ht *HuffManTree) buildHuffManTree() {
 
 		sum := node1.weight + node2.weight
 
-		mergedNode := MergeTree(sum, node1, node2)
+		mergedNode := mergeTree(sum, node1, node2)
 
 		pq.Add(mergedNode)
 	}
@@ -55,7 +87,7 @@ func buildprefixCodeTableUtil(root *Node, prefixCode string, prefixCodeTable *ma
 		return
 	}
 
-	if root.IsLeadNode() {
+	if root.isLeadNode() {
 		(*prefixCodeTable)[root.char] = prefixCode
 		return
 	}

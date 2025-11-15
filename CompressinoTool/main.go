@@ -2,8 +2,11 @@ package main
 
 import (
 	"compressiontool/util"
+	"fmt"
 	"log"
 	"os"
+	"slices"
+	"strings"
 )
 
 func main() {
@@ -19,14 +22,42 @@ func main() {
 		os.Exit(1)
 	}
 
-	if argsLen != 2 {
-		log.Fatalf("Too many arguments expected 2 but receieved %d\n", argsLen)
+	fmt.Println(args)
+
+	if argsLen != 3 {
+		log.Fatalf("Too many arguments expected 3 but receieved %d\n", argsLen)
+		os.Exit(1)
+	}
+
+	operation := ""
+
+	for i := range args {
+		if strings.HasPrefix(args[i], "--") {
+			operation = args[i][2:]
+			args = slices.Delete(args, i, i+1)
+			break
+		}
+	}
+
+	if operation != "compress" && operation != "decompress" {
+		log.Fatalf("invalid operation %v. Allowed --compress & --decompress", operation)
 		os.Exit(1)
 	}
 
 	inputFileName := args[0]
 	outputFileName := args[1]
 
-	util.CreateCompressedFile(inputFileName, outputFileName)
+	if operation == "compress" {
+		err := util.CreateCompressedFile(inputFileName, outputFileName)
+		if err != nil {
+			log.Panic(err)
+		}
 
+		return
+	}
+
+	err := util.DecompressFile(inputFileName, outputFileName)
+	if err != nil {
+		log.Panic(err)
+	}
 }
