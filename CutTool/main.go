@@ -1,0 +1,5 @@
+package cuttool
+
+func main() {
+
+}
