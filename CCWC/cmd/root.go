@@ -16,6 +16,8 @@ var (
 	getLines      bool
 	getWords      bool
 	getCharecters bool
+
+	filePath string
 )
 
 func counter(file *os.File, splitFunc bufio.SplitFunc, resetFilePointer bool) int {
@@ -47,21 +49,26 @@ var rootCmd = &cobra.Command{
 			return fmt.Errorf("number of flags is greater than 1")
 		}
 
+		if len(args) > 0 {
+			filePath = args[0]
+		}
+
 		return nil
 	},
 
 	RunE: func(cmd *cobra.Command, args []string) error {
-		var filePath string
+		var file *os.File
 
 		if len(args) > 0 {
-			filePath = args[0]
+			_file, err := os.Open(filePath)
+			file = _file
+			if err != nil {
+				return fmt.Errorf("error reading file %v", err)
+			}
+			defer _file.Close()
 		} else {
-			return fmt.Errorf("file path is not provided")
+			file = os.Stdin
 		}
-
-		file, _ := os.Open(filePath)
-
-		defer file.Close()
 
 		if getBytes {
 			fmt.Println(counter(file, bufio.ScanBytes, false), filePath)
